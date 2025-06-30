@@ -102,3 +102,5 @@ Hacé clic en “Crear usuario”.
 Hacé clic en tu nombre de usuario (arriba a la derecha).
 
 Seleccioná “Cerrar sesión” para salir de forma segura.
+
+Arreglo Urgente del software 29/06/2025
