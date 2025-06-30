@@ -1,0 +1,104 @@
+Instrucciones de uso: Software de Gestión de Seguros
+1. 🔐 Inicio de sesión
+Accedé al sistema desde el navegador ingresando la URL del sistema.
+
+Introducí tu nombre de usuario y contraseña.
+
+Hacé clic en "Iniciar sesión".
+
+Si los datos son correctos, ingresarás al panel principal.
+
+2. 👤 Registrar un nuevo cliente
+En el menú principal, hacé clic en “Clientes” y luego en “Agregar nuevo”.
+
+Completá el formulario con:
+
+Nombre completo
+
+DNI
+
+Dirección
+
+Teléfono
+
+CUIT
+
+Email
+
+Hacé clic en “Guardar” para registrar al cliente.
+
+3. 🚗 Registrar un bien asegurado (vehículo)
+Desde el menú, seleccioná “Bienes Asegurados” > “Nuevo”.
+
+Completá los campos:
+
+Descripción
+
+Modelo
+
+Patente
+
+Número de motor y chasis
+
+Tipo de vehículo y tipo de uso
+
+Valor estimado
+
+Confirmá haciendo clic en “Guardar bien”.
+
+4. 📄 Emitir una nueva póliza
+Ingresá a la sección “Pólizas” > “Nueva póliza”.
+
+Seleccioná el cliente, la compañía aseguradora y el bien asegurado.
+
+Ingresá:
+
+Número de póliza
+
+Fechas de inicio y fin
+
+Estado
+
+Sección y número de endoso
+
+Hacé clic en “Emitir póliza”.
+
+5. 🔍 Consultar pólizas existentes
+Ir a “Pólizas” > “Listado”.
+
+Podés buscar por:
+
+DNI del cliente
+
+Número de póliza
+
+Estado (vigente, vencida, anulada)
+
+Hacé clic en una póliza para ver sus detalles.
+
+6. ✏️ Modificar o anular una póliza
+Desde el listado de pólizas, buscá y seleccioná la póliza deseada.
+
+Hacé clic en “Editar”.
+
+Realizá las modificaciones permitidas (según estado).
+
+Para anular una póliza, cambiá su estado a “Anulada” y guardá.
+
+7. 🔑 Gestión de usuarios del sistema (solo administradores)
+Ingresá a “Usuarios” > “Nuevo usuario”.
+
+Cargá:
+
+Nombre de usuario
+
+Contraseña
+
+Rol (operador / administrador)
+
+Hacé clic en “Crear usuario”.
+
+8. 📤 Cerrar sesión
+Hacé clic en tu nombre de usuario (arriba a la derecha).
+
+Seleccioná “Cerrar sesión” para salir de forma segura.
