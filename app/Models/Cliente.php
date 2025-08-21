@@ -9,7 +9,10 @@ class Cliente extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nombre', 'direccion', 'cuit', 'telefono', 'email'];
+    protected $primaryKey = 'id_cliente';
+
+    protected $fillable = ['nombre', 'apellido', 'direccion', 'cuit', 'telefono', 'email'];
+
 
     public function polizas()
     {
