@@ -9,6 +9,8 @@ class Poliza extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'id_poliza';
+
     protected $fillable = [
         'numero_poliza', 'estado', 'fecha_inicio', 'fecha_fin',
         'seccion', 'endoso', 'id_cliente', 'id_compania', 'id_bien_asegurado'

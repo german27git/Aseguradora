@@ -9,6 +9,8 @@ class BienAsegurado extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'id_bien_asegurado';
+
     protected $fillable = [
         'descripcion', 'modelo', 'patente', 'valor',
         'motor', 'chasis', 'tipo_vehiculo', 'tipo_uso'
