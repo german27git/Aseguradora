@@ -9,6 +9,11 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+//Dependencias para la ventana modal de BienAsegurado
+use Filament\Infolists\Infolist;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Tables\Actions\Action;
+
 
 class PolizaResource extends Resource
 {
@@ -175,19 +180,61 @@ class PolizaResource extends Resource
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('bienAsegurado.descripcion')
-                    ->label('Bien Asegurado'),
+                    ->label('Bien Asegurado')
+                    ->action(function ($record, $livewire) {
+                        $livewire->dispatch('open-modal', [
+                            'id' => 'bien-asegurado-detalle',
+                            'recordId' => $record->bienAsegurado->id_bien_asegurado,
+        ]);
+    }),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Action::make('verBien')
+        ->label("")        
+        ->icon('heroicon-o-eye')
+        ->modalHeading(fn ($record) => 'Bien Asegurado: ' . $record->bienAsegurado->descripcion)
+
+        ->modalButton('Cerrar')
+        ->modalContent(fn ($record) => Infolist::make()
+    ->record($record->bienAsegurado)
+    ->schema([
+        \Filament\Infolists\Components\Section::make('Información del Bien Asegurado')
+            ->schema([
+                \Filament\Infolists\Components\Grid::make(2)
+                    ->schema([
+                        TextEntry::make('descripcion')->label('Descripción'),
+                        TextEntry::make('modelo')->label('Modelo'),
+                        TextEntry::make('patente')->label('Patente'),
+                        TextEntry::make('valor')->label('Valor')->money('ARS'),
+                        TextEntry::make('motor')->label('Motor'),
+                        TextEntry::make('chasis')->label('Chasis'),
+                        TextEntry::make('tipo_vehiculo')->label('Tipo de Vehículo'),
+                        TextEntry::make('tipo_uso')->label('Tipo de Uso'),
+                    ]),
+            ])
+            ->collapsible(false) // opcional: que no se pueda plegar
+            ->columns(2), // fuerza columnas más prolijas
+    ])
+                ),
+
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    tables\Actions\DeleteAction::make(),
+                    
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+
+            
+            
     }
 
     public static function getRelations(): array
@@ -205,4 +252,26 @@ class PolizaResource extends Resource
             'edit' => Pages\EditPoliza::route('/{record}/edit'),
         ];
     }
+
+    public function getTableModals(): array
+{
+    return [
+        'bien-asegurado-detalle' => [
+            'infolist' => fn ($recordId) => Infolist::make()
+                ->record(\App\Models\BienAsegurado::find($recordId))
+                ->schema([
+                    TextEntry::make('descripcion')->label('Descripción'),
+                    TextEntry::make('modelo')->label('Modelo'),
+                    TextEntry::make('patente')->label('Patente'),
+                    TextEntry::make('valor')->label('Valor'),
+                    TextEntry::make('motor')->label('Motor'),
+                    TextEntry::make('chasis')->label('Chasis'),
+                    TextEntry::make('tipo_vehiculo')->label('Tipo de Vehículo'),
+                    TextEntry::make('tipo_uso')->label('Tipo de Uso'),
+                ]),
+        ],
+    ];
+}
+
+
 }
