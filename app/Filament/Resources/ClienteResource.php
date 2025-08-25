@@ -24,14 +24,14 @@ class ClienteResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('nombre')
-                ->label('Nombre')
+                ->label('Nombre Completo')
                 ->required()
                 ->maxLength(255),
 
-                Forms\Components\TextInput::make('apellido')
-                    ->label('Apellido')
-                    ->required()
-                    ->maxLength(255),
+            //    Forms\Components\TextInput::make('apellido')
+            //        ->label('Apellido')
+            //        ->required()
+            //        ->maxLength(255),
 
 
             Forms\Components\TextInput::make('direccion')
@@ -66,12 +66,13 @@ class ClienteResource extends Resource
                 ->sortable(),
 
             Tables\Columns\TextColumn::make('nombre')
+            ->label('Nombre Completo')
                 ->searchable()
                 ->sortable(),
                 
-            Tables\Columns\TextColumn::make('apellido')
-                ->searchable()
-                ->sortable(),
+            //Tables\Columns\TextColumn::make('apellido')
+            //    ->searchable()
+            //    ->sortable(),
     
 
             Tables\Columns\TextColumn::make('direccion'),

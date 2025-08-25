@@ -49,8 +49,8 @@ class PolizaResource extends Resource
                 Forms\Components\Select::make('seccion')
                     ->label('Sección')
                     ->options([
-                        'Auto' => 'Auto',
-                        'Moto' => 'Moto',
+                        'Auto' => 'Automotores',
+                        'Moto' => 'Motovehiculos',
                     ])
                     ->required()
                     ->native(false),
@@ -65,7 +65,24 @@ class PolizaResource extends Resource
                     ->relationship('cliente', 'nombre')
                     ->required()
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+
+                    ->createOptionForm([
+                        Forms\Components\TextInput::make('nombre')
+                        ->label('Nombre Completo'),
+
+                        Forms\Components\TextInput::make('direccion')
+                        ->label('Direccion'),
+
+                        Forms\Components\TextInput::make('cuit')
+                        ->label('Cuit'),
+
+                        Forms\Components\TextInput::make('telefono')
+                        ->label('Telefono'),
+
+                        Forms\Components\TextInput::make('email')
+                        ->label('Email')
+                    ]),
 
                 Forms\Components\Select::make('id_compania')
                     ->label('Compañía')
