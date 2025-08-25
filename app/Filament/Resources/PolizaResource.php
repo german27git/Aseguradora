@@ -22,135 +22,147 @@ class PolizaResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('numero_poliza')
-                    ->label('Número de Póliza')
-                    ->required()
-                    ->unique(ignoreRecord: true),
+{
+    return $form
+        ->schema([
+            Forms\Components\TextInput::make('numero_poliza')
+                ->label('Número de Póliza')
+                ->required()
+                ->unique(ignoreRecord: true)
+                ->columnSpan('full'),
 
-                Forms\Components\Select::make('estado')
-                    ->label('Estado')
-                    ->options([
-                        'Vigente' => 'Vigente',
-                        'Anulada' => 'Anulada',
-                    ])
-                    ->required()
-                    ->native(false),
+            Forms\Components\Select::make('estado')
+                ->label('Estado')
+                ->options([
+                    'Vigente' => 'Vigente',
+                    'Anulada' => 'Anulada',
+                ])
+                ->required()
+                ->native(false)
+                ->columnSpan(1),
 
-                Forms\Components\DatePicker::make('fecha_inicio')
-                    ->label('Fecha de Inicio')
-                    ->required(),
+            Forms\Components\DatePicker::make('fecha_inicio')
+                ->label('Fecha de Inicio')
+                ->required()
+                ->columnSpan(1),
 
-                Forms\Components\DatePicker::make('fecha_fin')
-                    ->label('Fecha de Fin'),
+            Forms\Components\DatePicker::make('fecha_fin')
+                ->label('Fecha de Fin')
+                ->columnSpan(1),
 
-                Forms\Components\Select::make('seccion')
-                    ->label('Sección')
-                    ->options([
-                        'Auto' => 'Automotores',
-                        'Moto' => 'Motovehiculos',
-                    ])
-                    ->required()
-                    ->native(false),
+            Forms\Components\Select::make('seccion')
+                ->label('Sección')
+                ->options([
+                    'Auto' => 'Automotores',
+                    'Moto' => 'Motovehiculos',
+                ])
+                ->required()
+                ->native(false)
+                ->columnSpan(1),
 
-                Forms\Components\TextInput::make('endoso')
-                    ->label('Endoso')
-                    ->numeric()
-                    ->default(0),
+            Forms\Components\TextInput::make('endoso')
+                ->label('Endoso')
+                ->numeric()
+                ->default(0)
+                ->columnSpan(1),
 
-                Forms\Components\Select::make('id_cliente')
-                    ->label('Cliente')
-                    ->relationship('cliente', 'nombre')
-                    ->required()
-                    ->searchable()
-                    ->preload()
-
-                    ->createOptionForm([
-                        Forms\Components\TextInput::make('nombre')
+            Forms\Components\Select::make('id_cliente')
+                ->label('Cliente')
+                ->relationship('cliente', 'nombre')
+                ->required()
+                ->searchable()
+                ->preload()
+                ->createOptionForm([
+                    Forms\Components\TextInput::make('nombre')
                         ->label('Nombre Completo'),
+                    Forms\Components\TextInput::make('direccion')
+                        ->label('Dirección'),
+                    Forms\Components\TextInput::make('cuit')
+                        ->label('CUIT'),
+                    Forms\Components\TextInput::make('telefono')
+                        ->label('Teléfono'),
+                    Forms\Components\TextInput::make('email')
+                        ->label('Email'),
+                ])
+                ->columnSpan('full'),
 
-                        Forms\Components\TextInput::make('direccion')
-                        ->label('Direccion'),
+            Forms\Components\Select::make('id_compania')
+                ->label('Compañía')
+                ->relationship('compania', 'nombre_compania')
+                ->required()
+                ->searchable()
+                ->preload()
+                ->columnSpan(1)
+                ->reactive(),
 
-                        Forms\Components\TextInput::make('cuit')
-                        ->label('Cuit'),
+            Forms\Components\Select::make('tipo_cobertura_id')
+                ->label('Tipo de Cobertura')
+                ->options(function (callable $get) {
+                    $companiaId = $get('id_compania');
+                    if (!$companiaId) return [];
+                    $compania = \App\Models\Compania::find($companiaId);
+                    if (!$compania) return [];
+                    return $compania->tiposCobertura->pluck('nombre', 'id')->toArray();
+                })
+                ->required()
+                ->reactive()
+                ->visible(fn (callable $get) => !is_null($get('id_compania')))
+                ->searchable()
+                ->preload()
+                ->columnSpan(1),
 
-                        Forms\Components\TextInput::make('telefono')
-                        ->label('Telefono'),
-
-                        Forms\Components\TextInput::make('email')
-                        ->label('Email')
-                    ]),
-
-                Forms\Components\Select::make('id_compania')
-                    ->label('Compañía')
-                    ->relationship('compania', 'nombre_compania')
-                    ->required()
-                    ->searchable()
-                    ->preload(),
-
-                Forms\Components\Select::make('id_bien_asegurado')
-                    ->label('Bien Asegurado')
-                    ->relationship('bienAsegurado', 'descripcion')
-                    ->required()
-                    ->searchable()
-                    ->preload()
-                    //En este bloque como tenemos asociado el bien con la poliza
-                    //podemos traer el form de bienAsegurado para crearlo desde aqui.
-                    //Implementacion en el commit 22/08/25
-                    ->createOptionForm([
-                        Forms\Components\TextInput::make('descripcion')
-                            ->label('Descripción')
-                            ->required()
-                            ->maxLength(255),
-
-                        Forms\Components\TextInput::make('modelo')
-                            ->label('Modelo')
-                            ->required()
-                            ->numeric(),
-
-                        Forms\Components\TextInput::make('patente')
-                            ->label('Patente')
-                            ->required()
-                            ->maxLength(10),
-
-                        Forms\Components\TextInput::make('valor')
-                            ->label('Valor')
-                            ->required()
-                            ->numeric(),
-
-                        Forms\Components\TextInput::make('motor')
-                            ->label('Motor')
-                            ->required()
-                            ->maxLength(255),
-
-                        Forms\Components\TextInput::make('chasis')
-                            ->label('Chasis')
-                            ->required()
-                            ->maxLength(255),
-
-                        Forms\Components\Select::make('tipo_vehiculo')
-                            ->label('Tipo de Vehículo')
-                            ->options([
-                                'Auto' => 'Auto',
-                                'Moto' => 'Moto',
-                                'Pick-Up' => 'Pick-Up',
-                                'Camiones' => 'Camiones',
-                            ])
-                            ->required(),
-
-                        Forms\Components\Select::make('tipo_uso')
-                            ->label('Tipo de Uso')
-                            ->options([
-                                'Particular' => 'Particular',
-                                'Comercial' => 'Comercial',
-                            ])
-                            ->required(),
-                    ]),
-            ]);
-    }
+            Forms\Components\Select::make('id_bien_asegurado')
+                ->label('Bien Asegurado')
+                ->relationship('bienAsegurado', 'descripcion')
+                ->required()
+                ->searchable()
+                ->preload()
+                ->createOptionForm([
+                    Forms\Components\TextInput::make('descripcion')
+                        ->label('Descripción')
+                        ->required()
+                        ->maxLength(255),
+                    Forms\Components\TextInput::make('modelo')
+                        ->label('Modelo')
+                        ->required()
+                        ->numeric(),
+                    Forms\Components\TextInput::make('patente')
+                        ->label('Patente')
+                        ->required()
+                        ->maxLength(10),
+                    Forms\Components\TextInput::make('valor')
+                        ->label('Valor')
+                        ->required()
+                        ->numeric(),
+                    Forms\Components\TextInput::make('motor')
+                        ->label('Motor')
+                        ->required()
+                        ->maxLength(255),
+                    Forms\Components\TextInput::make('chasis')
+                        ->label('Chasis')
+                        ->required()
+                        ->maxLength(255),
+                    Forms\Components\Select::make('tipo_vehiculo')
+                        ->label('Tipo de Vehículo')
+                        ->options([
+                            'Auto' => 'Auto',
+                            'Moto' => 'Moto',
+                            'Pick-Up' => 'Pick-Up',
+                            'Camiones' => 'Camiones',
+                        ])
+                        ->required(),
+                    Forms\Components\Select::make('tipo_uso')
+                        ->label('Tipo de Uso')
+                        ->options([
+                            'Particular' => 'Particular',
+                            'Comercial' => 'Comercial',
+                        ])
+                        ->required(),
+                ])
+                ->columnSpan('full'),
+        ])
+        ->columns(2); // dos columnas para organizar el formulario
+}
 
     public static function table(Table $table): Table
     {

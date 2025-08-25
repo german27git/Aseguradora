@@ -12,9 +12,11 @@ class Poliza extends Model
     protected $primaryKey = 'id_poliza';
 
     protected $fillable = [
-        'numero_poliza', 'estado', 'fecha_inicio', 'fecha_fin',
-        'seccion', 'endoso', 'id_cliente', 'id_compania', 'id_bien_asegurado'
-    ];
+    'numero_poliza', 'estado', 'fecha_inicio', 'fecha_fin',
+    'seccion', 'endoso', 'id_cliente', 'id_compania', 'id_bien_asegurado',
+    'tipo_cobertura_id'
+];
+
 
     public function cliente()
     {
@@ -30,4 +32,10 @@ class Poliza extends Model
     {
         return $this->belongsTo(BienAsegurado::class, 'id_bien_asegurado');
     }
+
+    public function tipoCobertura()
+{
+    return $this->belongsTo(TipoCobertura::class, 'tipo_cobertura_id');
+}
+
 }

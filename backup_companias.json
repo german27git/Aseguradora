@@ -1,0 +1,10 @@
+[
+    {
+        "id_compania": 1,
+        "nombre_compania": "La segunda",
+        "tipo_cobertura": "Responsabilidad Civil",
+        "tipo_vigencia": "Anual",
+        "created_at": "2025-08-23T18:31:16.000000Z",
+        "updated_at": "2025-08-23T18:31:16.000000Z"
+    }
+]
