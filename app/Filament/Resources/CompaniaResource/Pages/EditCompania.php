@@ -13,7 +13,20 @@ class EditCompania extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()
+                ->label("Eliminar"),
         ];
+    }
+    
+        // <-- Con esta funcion generamos el titulo del listado
+    public function getTitle(): string
+    {
+        return 'Editar Compania';
+    }
+
+    //Ocultamos el getBreadcrumbs que muestra en la parte sup la ruta
+    public function getBreadcrumbs(): array
+    {
+        return [];
     }
 }

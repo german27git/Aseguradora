@@ -9,4 +9,6 @@ use Filament\Resources\Pages\CreateRecord;
 class CreatePoliza extends CreateRecord
 {
     protected static string $resource = PolizaResource::class;
+
+    
 }

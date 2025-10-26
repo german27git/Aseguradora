@@ -68,9 +68,7 @@ class UserResource extends Resource
                 ->searchable(),
                 Tables\Columns\TextColumn::make('email')
                 ->searchable(),
-                tables\Columns\TextColumn::make('email_verified_at')
-                ->dateTime()
-                ->sortable(),
+                
 
                 tables\Columns\TextColumn::make('created_at')
                 ->label('Creado en')

@@ -10,10 +10,23 @@ class ListClientes extends ListRecords
 {
     protected static string $resource = ClienteResource::class;
 
-    protected function getHeaderActions(): array
+    public function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Nuevo cliente'),
         ];
+    }
+
+    // <-- Con esta funcion generamos el titulo del listado
+    public function getTitle(): string
+    {
+        return 'Listado de Clientes';
+    }
+
+    //Ocultamos el getBreadcrumbs que muestra en la parte sup la ruta
+    public function getBreadcrumbs(): array
+    {
+        return [];
     }
 }

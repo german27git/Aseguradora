@@ -13,7 +13,20 @@ class ListPolizas extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label("Nueva Poliza"),
         ];
+    }
+
+        // <-- Con esta funcion generamos el titulo del listado
+    public function getTitle(): string
+    {
+        return 'Listado de Polizas';
+    }
+
+    //Ocultamos el getBreadcrumbs que muestra en la parte sup la ruta
+    public function getBreadcrumbs(): array
+    {
+        return [];
     }
 }

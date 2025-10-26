@@ -13,7 +13,20 @@ class ListCompanias extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+            ->label("Nueva Compania"),
         ];
     }
+
+        public function getTitle(): string
+    {
+        return 'Listado de Companias';
+    }
+
+    //Ocultamos el getBreadcrumbs que muestra en la parte sup la ruta
+    public function getBreadcrumbs(): array
+    {
+        return [];
+    }
 }
+

@@ -13,7 +13,19 @@ class EditUser extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()
+            ->label("Eliminar"),
         ];
+    }
+
+    public function getTitle(): string
+    {
+        return 'Editar Usuario';
+    }
+
+    //Ocultamos el getBreadcrumbs que muestra en la parte sup la ruta
+    public function getBreadcrumbs(): array
+    {
+        return [];
     }
 }

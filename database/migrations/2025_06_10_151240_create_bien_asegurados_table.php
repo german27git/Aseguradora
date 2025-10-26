@@ -16,7 +16,7 @@ return new class extends Migration
     $table->string('descripcion');
     $table->integer('modelo');
     $table->string('patente', 10);
-    $table->decimal('valor', 8, 2);
+    $table->decimal('valor', 12, 2);
     $table->string('motor');
     $table->string('chasis');
     $table->enum('tipo_vehiculo', ['Auto', 'Moto', 'Pick-Up', 'Camiones']);

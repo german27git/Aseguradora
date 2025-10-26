@@ -38,8 +38,17 @@ class BienAseguradoResource extends Resource
                     ->required()
                     ->maxLength(10),
                 Forms\Components\TextInput::make('valor')
+                    ->label('$ Valor (ARS)')
+                    ->prefix('ARS')
+                    ->numeric()
                     ->required()
-                    ->numeric(),
+                    ->inputMode('decimal')
+                    ->default(0.00)
+                    ->step(0.01)
+                    ->minValue(0)
+                    ->maxValue(9999999999.99)
+                    ->suffix('ARS'),
+
                 Forms\Components\TextInput::make('motor')
                     ->required()
                     ->maxLength(255),
