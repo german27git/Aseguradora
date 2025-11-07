@@ -16,6 +16,7 @@ class Cliente extends Model
 
     public function polizas()
     {
-        return $this->hasMany(Poliza::class, 'id_cliente');
+        return $this->hasMany(Poliza::class, 'id_cliente', 'id_cliente');
+
     }
 }
