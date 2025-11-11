@@ -23,8 +23,11 @@ class GestionResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('nombre')->label('Nombre')->sortable()->searchable(),
-                TextColumn::make('apellido')->label('Apellido')->sortable()->searchable(),
+                TextColumn::make('id_cliente')
+                ->label('ID'),
+                TextColumn::make('nombre')
+                ->label('Nombre Completo')->sortable()->searchable(),
+                TextColumn::make('direccion')->label('Direccion')->sortable(),
                 TextColumn::make('cuit')->label('CUIT')->sortable(),
                 TextColumn::make('email')->label('Email')->searchable(),
                 TextColumn::make('telefono')->label('Teléfono'),

@@ -46,7 +46,7 @@ class UserResource extends Resource
                 ->required(),
 
                 Forms\Components\DatePicker::make('email_verified_at')
-                ->label('Email Verified At')
+                ->label('Fecha de creacion')
                 ->default(now()),
 
                 Forms\Components\TextInput::make('password')

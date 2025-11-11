@@ -13,8 +13,13 @@ use Filament\Tables\Table;
 use Filament\Infolists\Infolist;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Tables\Actions\Action;
-use Filament\Notifications\Notification;
 use Carbon\Carbon;
+
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\ViewColumn;
+use Illuminate\Support\Facades\Storage;
+
+
 
 class PolizaResource extends Resource
 {
@@ -55,16 +60,31 @@ class PolizaResource extends Resource
                         Forms\Components\TextInput::make('valor')->label('Valor')->required()->numeric(),
                         Forms\Components\TextInput::make('motor')->label('Motor')->required(),
                         Forms\Components\TextInput::make('chasis')->label('Chasis')->required(),
-                        Forms\Components\Select::make('tipo_vehiculo')->label('Tipo de Vehículo')->options([
-                            'Auto' => 'Auto',
-                            'Moto' => 'Moto',
-                            'Pick-Up' => 'Pick-Up',
-                            'Camiones' => 'Camiones',
-                        ])->required(),
-                        Forms\Components\Select::make('tipo_uso')->label('Tipo de Uso')->options([
-                            'Particular' => 'Particular',
-                            'Comercial' => 'Comercial',
-                        ])->required(),
+                        Forms\Components\Select::make('tipo_vehiculo')
+                            ->label('Tipo de Vehículo')
+                            ->options([
+                                'Auto' => 'Auto',
+                                'Moto' => 'Moto',
+                                'Pick-Up' => 'Pick-Up',
+                                'Camiones' => 'Camiones',
+                            ])
+                            ->required(),
+                        Forms\Components\Select::make('tipo_uso')
+                            ->label('Tipo de Uso')
+                            ->options([
+                                'Particular' => 'Particular',
+                                'Comercial' => 'Comercial',
+                            ])
+                            ->required(),
+                        Forms\Components\FileUpload::make('imagenes')
+                            ->label('Imágenes del Bien')
+                            ->image()
+                            ->multiple()
+                            ->maxFiles(5)
+                            ->disk('public')
+                            ->directory('bienes')
+                            ->nullable()
+                            ->imagePreviewHeight('150'),
                     ])
                     ->columnSpan('full'),
 
@@ -76,24 +96,16 @@ class PolizaResource extends Resource
                     ->searchable()
                     ->preload()
                     ->reactive()
-                    ->afterStateUpdated(function (callable $get, callable $set) {
-                        self::ajustarYValidarVigencia($get, $set);
-                    })
+                    ->afterStateUpdated(fn ($get, $set) => self::ajustarYValidarVigencia($get, $set))
                     ->columnSpan(1),
 
                 // 🧾 TIPO DE COBERTURA
                 Forms\Components\Select::make('tipo_cobertura_id')
                     ->label('Tipo de Cobertura')
-                    ->options(function (callable $get) {
-                        $companiaId = $get('id_compania');
-                        if (!$companiaId) return [];
-                        $compania = Compania::find($companiaId);
-                        if (!$compania) return [];
-                        return $compania->tiposCobertura->pluck('nombre', 'id')->toArray();
-                    })
+                    ->options(fn ($get) => $get('id_compania') ? Compania::find($get('id_compania'))?->tiposCobertura->pluck('nombre','id')->toArray() ?? [] : [])
                     ->required()
                     ->reactive()
-                    ->visible(fn (callable $get) => !is_null($get('id_compania')))
+                    ->visible(fn ($get) => !is_null($get('id_compania')))
                     ->searchable()
                     ->preload()
                     ->columnSpan(1),
@@ -103,16 +115,14 @@ class PolizaResource extends Resource
                     ->label('Fecha de Inicio')
                     ->required()
                     ->reactive()
-                    ->afterStateUpdated(function (callable $get, callable $set) {
-                        self::ajustarYValidarVigencia($get, $set);
-                    })
+                    ->afterStateUpdated(fn ($get, $set) => self::ajustarYValidarVigencia($get, $set))
                     ->columnSpan(1),
 
                 Forms\Components\DatePicker::make('fecha_fin')
                     ->label('Fecha de Fin (calculada)')
                     ->required()
                     ->reactive()
-                    ->readOnly() // visible pero no editable
+                    ->readOnly()
                     ->columnSpan(1),
 
                 // ⚙️ SECCIÓN
@@ -133,7 +143,7 @@ class PolizaResource extends Resource
                     ->unique(ignoreRecord: true)
                     ->columnSpan(1),
 
-                // 🟢 ESTADO (select visible solo al editar)
+                // 🟢 ESTADO (solo al editar)
                 Forms\Components\Select::make('estado')
                     ->label('Estado')
                     ->options([
@@ -146,7 +156,7 @@ class PolizaResource extends Resource
                     ->native(false)
                     ->columnSpan(1),
 
-                // 🔵 ENDOSO (oculto al crear, visible al editar)
+                // 🔵 ENDOSO (solo al editar)
                 Forms\Components\TextInput::make('endoso')
                     ->label('Endoso')
                     ->numeric()
@@ -157,14 +167,11 @@ class PolizaResource extends Resource
             ->columns(2);
     }
 
-    // 🔹 Calcula y ajusta vigencia automáticamente
     protected static function ajustarYValidarVigencia(callable $get, callable $set)
     {
         $companiaId = $get('id_compania');
         $fechaInicio = $get('fecha_inicio');
-
         if (!$companiaId || !$fechaInicio) return;
-
         $compania = Compania::find($companiaId);
         if (!$compania) return;
 
@@ -175,66 +182,111 @@ class PolizaResource extends Resource
         };
 
         if ($dias) {
-            $nuevaFechaFin = Carbon::parse($fechaInicio)->addDays($dias);
-            $set('fecha_fin', $nuevaFechaFin->toDateString());
+            $set('fecha_fin', Carbon::parse($fechaInicio)->addDays($dias)->toDateString());
         }
     }
 
     public static function table(Table $table): Table
-    {
-        return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('id_poliza')->label('ID')->sortable(),
-                Tables\Columns\TextColumn::make('cliente.nombre')->label('Cliente')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('numero_poliza')->label('Póliza')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('estado')->label('Estado')->badge()->colors([
-                    'success' => 'Vigente',
-                    'danger' => 'Anulada',
-                ]),
-                Tables\Columns\TextColumn::make('fecha_inicio')->label('Inicio')->date('d/m/Y'),
-                Tables\Columns\TextColumn::make('fecha_fin')->label('Fin')->date('d/m/Y'), // ✅ se mostrará correctamente ahora
-                Tables\Columns\TextColumn::make('seccion')->label('Sección'),
-                Tables\Columns\TextColumn::make('endoso')->label('Endoso'),
-                Tables\Columns\TextColumn::make('compania.nombre_compania')->label('Compañía')->sortable(),
-                Tables\Columns\TextColumn::make('bienAsegurado.descripcion')->label('Bien Asegurado'),
-            ])
-            ->actions([
-                Action::make('verBien')
-                    ->label('')
-                    ->icon('heroicon-o-eye')
-                    ->modalHeading(fn ($record) => 'Bien Asegurado: ' . $record->bienAsegurado->descripcion)
-                    ->modalButton('Cerrar')
-                    ->modalContent(fn ($record) => Infolist::make()
-                        ->record($record->bienAsegurado)
+{
+    return $table
+        ->columns([
+            Tables\Columns\TextColumn::make('id_poliza')->label('ID')->sortable(),
+            Tables\Columns\TextColumn::make('cliente.nombre')->label('Cliente')->sortable()->searchable(),
+            Tables\Columns\TextColumn::make('numero_poliza')->label('Póliza')->searchable()->sortable(),
+            Tables\Columns\TextColumn::make('estado')->label('Estado')->badge()->colors([
+                'success' => 'Vigente',
+                'danger' => 'Anulada',
+            ]),
+            Tables\Columns\TextColumn::make('fecha_inicio')->label('Inicio')->date('d/m/Y'),
+            Tables\Columns\TextColumn::make('fecha_fin')->label('Fin')->date('d/m/Y'),
+            Tables\Columns\TextColumn::make('seccion')->label('Sección'),
+            Tables\Columns\TextColumn::make('endoso')->label('Endoso'),
+            Tables\Columns\TextColumn::make('compania.nombre_compania')->label('Compañía')->sortable(),
+            Tables\Columns\TextColumn::make('bienAsegurado.descripcion')->label('Bien Asegurado'),
+
+            // Columna que pasa URLs al blade (ViewColumn)
+            ViewColumn::make('imagenes')
+                ->label('Imágenes')
+                ->getStateUsing(function ($record) {
+                    $imagenes = $record->bienAsegurado?->imagenes ?? [];
+
+                    if (is_string($imagenes)) {
+                        $imagenes = json_decode($imagenes, true);
+                    }
+
+                    if (!is_array($imagenes)) {
+                        $imagenes = [];
+                    }
+
+                    return collect($imagenes)
+                        ->filter(fn ($img) => !empty($img))
+                        ->map(fn ($img) => Storage::disk('public')->url($img))
+                        ->toArray();
+                })
+                ->view('filament.columns.bien-imagenes'),
+        ])
+        ->actions([
+            // Acción personalizada "verBien" con modal y galería
+            Action::make('verBien')
+                ->label('')
+                ->icon('heroicon-o-eye')
+                ->modalHeading(fn ($record) => 'Bien Asegurado: ' . ($record->bienAsegurado->descripcion ?? ''))
+                ->modalButton('Cerrar')
+                ->modalContent(function ($record) {
+
+    return Infolist::make()
+        ->record($record) // ✅ el record ya es BienAsegurado
+        ->schema([
+            // 🔹 Información principal
+            \Filament\Infolists\Components\Section::make('Información del Bien Asegurado')
+                ->schema([
+                    \Filament\Infolists\Components\Grid::make(2)
                         ->schema([
-                            \Filament\Infolists\Components\Section::make('Información del Bien Asegurado')
-                                ->schema([
-                                    \Filament\Infolists\Components\Grid::make(2)
-                                        ->schema([
-                                            TextEntry::make('descripcion')->label('Descripción'),
-                                            TextEntry::make('modelo')->label('Modelo'),
-                                            TextEntry::make('patente')->label('Patente'),
-                                            TextEntry::make('valor')->label('Valor')->money('ARS'),
-                                            TextEntry::make('motor')->label('Motor'),
-                                            TextEntry::make('chasis')->label('Chasis'),
-                                            TextEntry::make('tipo_vehiculo')->label('Tipo de Vehículo'),
-                                            TextEntry::make('tipo_uso')->label('Tipo de Uso'),
-                                        ]),
-                                ]),
-                        ])
-                    ),
-                Tables\Actions\ActionGroup::make([
-                    Tables\Actions\ViewAction::make(),
-                    Tables\Actions\EditAction::make(),
-                    Tables\Actions\DeleteAction::make(),
+                            TextEntry::make('descripcion')->label('Descripción'),
+                            TextEntry::make('modelo')->label('Modelo'),
+                            TextEntry::make('patente')->label('Patente'),
+                            TextEntry::make('valor')->label('Valor')->money('ARS'),
+                            TextEntry::make('motor')->label('Motor'),
+                            TextEntry::make('chasis')->label('Chasis'),
+                            TextEntry::make('tipo_vehiculo')->label('Tipo de Vehículo'),
+                            TextEntry::make('tipo_uso')->label('Tipo de Uso'),
+                        ]),
                 ]),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+
+            // 🖼️ Sección de imágenes
+            \Filament\Infolists\Components\Section::make('Imágenes del Bien Asegurado')
+                ->schema([
+                    \Filament\Infolists\Components\ViewEntry::make('imagenes')
+                        ->view('filament.columns.bien-imagenes')
+                        ->getStateUsing(function ($record) {
+    $imagenes = $record->bienAsegurado?->imagenes ?? [];
+
+    if (is_string($imagenes)) {
+        $imagenes = json_decode($imagenes, true) ?? [];
     }
+
+    return collect($imagenes)
+        ->map(fn($img) => \Illuminate\Support\Facades\Storage::disk('public')->url($img))
+        ->toArray();
+}),
+                ]),
+        ]);
+}),
+
+            // Grupo estándar de acciones (ver/editar/eliminar)
+            Tables\Actions\ActionGroup::make([
+                Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
+            ]),
+        ])
+        ->bulkActions([
+            Tables\Actions\BulkActionGroup::make([
+                Tables\Actions\DeleteBulkAction::make(),
+            ]),
+        ]);
+}
+
 
     public static function getRelations(): array
     {
