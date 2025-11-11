@@ -231,52 +231,53 @@ class PolizaResource extends Resource
     ->view('filament.columns.bien-imagenes'),
         ])
         ->actions([
-            // Acción personalizada "verBien" con modal y galería
-            Action::make('verBien')
-                ->label('')
-                ->icon('heroicon-o-eye')
-                ->modalHeading(fn ($record) => 'Bien Asegurado: ' . ($record->bienAsegurado->descripcion ?? ''))
-                ->modalButton('Cerrar')
-                ->modalContent(function ($record) {
+    Action::make('verBien')
+        ->label('')
+        ->icon('heroicon-o-eye')
+        ->modalHeading(fn ($record) => 'Bien Asegurado: ' . ($record->bienAsegurado?->descripcion ?? ''))
+        ->modalButton('Cerrar')
+        ->modalContent(function ($record) {
 
-    return Infolist::make()
-        ->record($record) // ✅ el record ya es BienAsegurado
-        ->schema([
-            // 🔹 Información principal
-            \Filament\Infolists\Components\Section::make('Información del Bien Asegurado')
+            $bien = $record->bienAsegurado; // Capturamos la relación
+
+            return Infolist::make()
+                ->record($bien) // El record del Infolist
                 ->schema([
-                    \Filament\Infolists\Components\Grid::make(2)
+                    // Información principal
+                    \Filament\Infolists\Components\Section::make('Información del Bien Asegurado')
                         ->schema([
-                            TextEntry::make('descripcion')->label('Descripción'),
-                            TextEntry::make('modelo')->label('Modelo'),
-                            TextEntry::make('patente')->label('Patente'),
-                            TextEntry::make('valor')->label('Valor')->money('ARS'),
-                            TextEntry::make('motor')->label('Motor'),
-                            TextEntry::make('chasis')->label('Chasis'),
-                            TextEntry::make('tipo_vehiculo')->label('Tipo de Vehículo'),
-                            TextEntry::make('tipo_uso')->label('Tipo de Uso'),
+                            \Filament\Infolists\Components\Grid::make(2)
+                                ->schema([
+                                    TextEntry::make('descripcion')->label('Descripción'),
+                                    TextEntry::make('modelo')->label('Modelo'),
+                                    TextEntry::make('patente')->label('Patente'),
+                                    TextEntry::make('valor')->label('Valor')->money('ARS'),
+                                    TextEntry::make('motor')->label('Motor'),
+                                    TextEntry::make('chasis')->label('Chasis'),
+                                    TextEntry::make('tipo_vehiculo')->label('Tipo de Vehículo'),
+                                    TextEntry::make('tipo_uso')->label('Tipo de Uso'),
+                                ]),
                         ]),
-                ]),
 
-            // 🖼️ Sección de imágenes
-            \Filament\Infolists\Components\Section::make('Imágenes del Bien Asegurado')
-                ->schema([
-                    \Filament\Infolists\Components\ViewEntry::make('imagenes')
-                        ->view('filament.columns.bien-imagenes')
-                        ->getStateUsing(function ($record) {
-    $imagenes = $record->bienAsegurado?->imagenes ?? [];
+                    // Imágenes
+                    \Filament\Infolists\Components\Section::make('Imágenes del Bien Asegurado')
+                        ->schema([
+                            \Filament\Infolists\Components\ViewEntry::make('imagenes')
+                                ->view('filament.columns.bien-imagenes')
+                                ->getStateUsing(function ($record) {
+                                    $imagenes = $record?->imagenes ?? [];
 
-    if (is_string($imagenes)) {
-        $imagenes = json_decode($imagenes, true) ?? [];
-    }
+                                    if (is_string($imagenes)) {
+                                        $imagenes = json_decode($imagenes, true) ?? [];
+                                    }
 
-    return collect($imagenes)
-        ->map(fn($img) => \Illuminate\Support\Facades\Storage::disk('public')->url($img))
-        ->toArray();
-}),
-                ]),
-        ]);
-}),
+                                    return collect($imagenes)
+                                        ->map(fn($img) => \Illuminate\Support\Facades\Storage::disk('public')->url($img))
+                                        ->toArray();
+                                }),
+                        ]),
+                ]);
+        }),
 
             // Grupo estándar de acciones (ver/editar/eliminar)
             Tables\Actions\ActionGroup::make([
