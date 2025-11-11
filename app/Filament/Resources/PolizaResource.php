@@ -48,45 +48,51 @@ class PolizaResource extends Resource
 
                 // 🚗 BIEN ASEGURADO
                 Forms\Components\Select::make('id_bien_asegurado')
-                    ->label('Bien Asegurado')
-                    ->relationship('bienAsegurado', 'descripcion')
-                    ->required()
-                    ->searchable()
-                    ->preload()
-                    ->createOptionForm([
-                        Forms\Components\TextInput::make('descripcion')->label('Descripción')->required(),
-                        Forms\Components\TextInput::make('modelo')->label('Modelo')->numeric()->required(),
-                        Forms\Components\TextInput::make('patente')->label('Patente')->required()->maxLength(10),
-                        Forms\Components\TextInput::make('valor')->label('Valor')->required()->numeric(),
-                        Forms\Components\TextInput::make('motor')->label('Motor')->required(),
-                        Forms\Components\TextInput::make('chasis')->label('Chasis')->required(),
-                        Forms\Components\Select::make('tipo_vehiculo')
-                            ->label('Tipo de Vehículo')
-                            ->options([
-                                'Auto' => 'Auto',
-                                'Moto' => 'Moto',
-                                'Pick-Up' => 'Pick-Up',
-                                'Camiones' => 'Camiones',
-                            ])
-                            ->required(),
-                        Forms\Components\Select::make('tipo_uso')
-                            ->label('Tipo de Uso')
-                            ->options([
-                                'Particular' => 'Particular',
-                                'Comercial' => 'Comercial',
-                            ])
-                            ->required(),
-                        Forms\Components\FileUpload::make('imagenes')
-                            ->label('Imágenes del Bien')
-                            ->image()
-                            ->multiple()
-                            ->maxFiles(5)
-                            ->disk('public')
-                            ->directory('bienes')
-                            ->nullable()
-                            ->imagePreviewHeight('150'),
-                    ])
-                    ->columnSpan('full'),
+    ->label('Bien Asegurado')
+    ->relationship('bienAsegurado', 'descripcion')
+    ->required()
+    ->searchable()
+    ->preload()
+    ->createOptionForm([
+        Forms\Components\TextInput::make('descripcion')->label('Descripción')->required(),
+        Forms\Components\TextInput::make('modelo')->label('Modelo')->numeric()->required(),
+        Forms\Components\TextInput::make('patente')->label('Patente')->required()->maxLength(10),
+        Forms\Components\TextInput::make('valor')->label('Valor')->required()->numeric(),
+        Forms\Components\TextInput::make('motor')->label('Motor')->required(),
+        Forms\Components\TextInput::make('chasis')->label('Chasis')->required(),
+        Forms\Components\Select::make('tipo_vehiculo')
+            ->label('Tipo de Vehículo')
+            ->options([
+                'Auto' => 'Auto',
+                'Moto' => 'Moto',
+                'Pick-Up' => 'Pick-Up',
+                'Camiones' => 'Camiones',
+            ])
+            ->required(),
+        Forms\Components\Select::make('tipo_uso')
+            ->label('Tipo de Uso')
+            ->options([
+                'Particular' => 'Particular',
+                'Comercial' => 'Comercial',
+            ])
+            ->required(),
+        Forms\Components\FileUpload::make('imagenes')
+            ->label('Imágenes del Bien')
+            ->image()
+            ->multiple()
+            ->maxFiles(5)
+            ->disk('public')
+            ->directory('bienes')
+            ->nullable()
+            ->imagePreviewHeight('150')
+            ->formatStateUsing(function ($state) {
+                if (is_array($state) && count($state) > 0) {
+                    return [$state[0]]; // mostrar solo una preview
+                }
+                return $state ? [$state] : [];
+            }),
+    ]) // 👈 este paréntesis y corchete cierran createOptionForm correctamente
+    ->columnSpan('full'),
 
                 // 🏢 COMPAÑÍA
                 Forms\Components\Select::make('id_compania')
@@ -206,24 +212,23 @@ class PolizaResource extends Resource
 
             // Columna que pasa URLs al blade (ViewColumn)
             ViewColumn::make('imagenes')
-                ->label('Imágenes')
-                ->getStateUsing(function ($record) {
-                    $imagenes = $record->bienAsegurado?->imagenes ?? [];
+    ->label('Imágenes')
+    ->getStateUsing(function ($record) {
+        $imagenes = $record->bienAsegurado?->imagenes ?? [];
 
-                    if (is_string($imagenes)) {
-                        $imagenes = json_decode($imagenes, true);
-                    }
+        if (is_string($imagenes)) {
+            $imagenes = json_decode($imagenes, true) ?? [];
+        }
 
-                    if (!is_array($imagenes)) {
-                        $imagenes = [];
-                    }
+        // Filtramos vacíos y obtenemos solo la primera imagen
+        $imagenesArray = collect($imagenes)
+            ->filter(fn ($img) => !empty($img))
+            ->map(fn ($img) => Storage::disk('public')->url($img))
+            ->toArray();
 
-                    return collect($imagenes)
-                        ->filter(fn ($img) => !empty($img))
-                        ->map(fn ($img) => Storage::disk('public')->url($img))
-                        ->toArray();
-                })
-                ->view('filament.columns.bien-imagenes'),
+        return $imagenesArray ? [$imagenesArray[0]] : [];
+    })
+    ->view('filament.columns.bien-imagenes'),
         ])
         ->actions([
             // Acción personalizada "verBien" con modal y galería
